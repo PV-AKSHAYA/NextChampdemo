@@ -1,9 +1,12 @@
-
-
-
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
     dependencies {
-        id("com.google.gms.google-services") version "4.4.3" apply false
+         // Usually configured by Flutter plugin; can omit if managed
+        classpath("com.google.gms:google-services:4.4.3") // Google services plugin classpath
+        // Add other classpaths if needed
     }
 }
 
@@ -18,6 +21,7 @@ val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
         .get()
+
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {

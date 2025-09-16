@@ -46,11 +46,6 @@ dependencies:
   equatable: ^2.0.3
   connectivity_plus: ^4.0.1 
   # lottie: ^2.2.0
-  firebase_core: ^2.0.0
-  firebase_auth: ^4.0.0
-  cloud_firestore: ^4.0.0
-  firebase_storage: ^11.0.0
-
 
   flutter_localizations:
     sdk: flutter
