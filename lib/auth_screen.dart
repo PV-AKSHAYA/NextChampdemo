@@ -1,4 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+Future<void> refreshUserIdToken() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    await user.getIdToken(true); // Forces refresh of ID token with latest claims
+  }
+}
+
+// Future<bool> isUserAdmin() async {
+//   User? user = FirebaseAuth.instance.currentUser;
+//   if (user == null) {
+//     return false;
+//   }
+//   final idTokenResult = await user.getIdTokenResult();
+//   return idTokenResult.claims?['admin'] == true;
+// }
+
+
+Future<void> checkUserRole() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final idTokenResult = await user.getIdTokenResult();
+    bool isAdmin = idTokenResult.claims?['admin'] == true;
+    if (isAdmin) {
+      // Show admin UI or enable admin features
+      print('User is an admin');
+    } else {
+      // Show regular user UI
+      print('User is not an admin');
+    }
+  }
+}
+
+Future<void> saveUserProfile(String userId, Map<String, dynamic> data) async {
+  await FirebaseFirestore.instance.collection('users').doc(userId).set(data, SetOptions(merge: true));
+}
+
+
+Future<User?> signInWithEmailAndPassword(String email, String password, VoidCallback onAuthSuccess) async {
+  try {
+    UserCredential result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+    onAuthSuccess();
+    return result.user;
+  } catch (e) {
+    print('Login failed: $e');
+    return null;
+  }
+}
+
+Future<User?> registerWithEmailAndPassword(String email, String password, VoidCallback onAuthSuccess) async {
+  try {
+    UserCredential result = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+    onAuthSuccess();
+    return result.user;
+  } catch (e) {
+    print('Registration failed: $e');
+    return null;
+  }
+}
+
+Future<void> saveUserData(String name, String email, int age, String gender, String mobile) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'name': name,
+      'email': email,
+      'age': age,
+      'gender': gender,
+      'mobile': mobile,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+}
+
+
+Future<void> signOut() async {
+  await FirebaseAuth.instance.signOut();
+  print('User logged out');
+}
+
+
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthSuccess;
@@ -56,6 +139,28 @@ class LoginPage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  Future<bool> isUserAdmin() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return false;
+    }
+    final idTokenResult = await user.getIdTokenResult();
+    return idTokenResult.claims?['admin'] == true;
+  }
+
+  // Dummy signInWithEmailAndPassword method — replace with your actual Firebase login logic
+  Future<User?> signInWithEmailAndPassword(
+      String email, String password, VoidCallback onLoginSuccess) async {
+    try {
+      UserCredential credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+      onLoginSuccess();
+      return credential.user;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -99,10 +204,32 @@ class LoginPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     child: const Text('Login', style: TextStyle(fontSize: 18)),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // Add your login logic here
-                        onLoginSuccess();
+                        final user = await signInWithEmailAndPassword(
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
+                          () async {
+                            bool isAdmin = await isUserAdmin();
+                            if (isAdmin) {
+                              print('User is admin/official');
+                              // TODO: Add your admin-specific logic here,
+                              // e.g., navigate to admin dashboard or set admin state
+                              Navigator.pushReplacementNamed(context, '/officialsDashboard');
+                            } else {
+                              print('User is a regular athlete');
+                              Navigator.pushReplacementNamed(context, '/userDashboard');
+                            }
+                            onLoginSuccess();
+                            Navigator.pushReplacementNamed(context, '/home');  // Call the original success callback
+                          },
+                        );
+
+                        if (user == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Login failed. Please check your credentials.')),
+                          );
+                        }
                       }
                     },
                   ),
@@ -238,12 +365,28 @@ class RegisterPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     ),
                     child: const Text('Register', style: TextStyle(fontSize: 18)),
-                    onPressed: () async{
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         // Add your registration logic here
-                        onRegisterSuccess();
-                      }
-                    },
+                            final user = await registerWithEmailAndPassword(emailController.text.trim(), passwordController.text.trim(), onRegisterSuccess);
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                               const SnackBar(content: Text('Registration failed. Please try again.')),
+
+                               );
+                                } else {
+                                  await saveUserData(
+                                    nameController.text.trim(),
+                                    emailController.text.trim(),
+                                    int.parse(ageController.text.trim()),
+                                    genderController.text.trim(),
+                                    mobileController.text.trim(),
+                                  );
+                                  Navigator.pushReplacementNamed(context, '/home');
+                                  print('User registered and data saved');
+                               }
+                               }
+                    }
                   ),
                   const SizedBox(height: 12),
                   TextButton(

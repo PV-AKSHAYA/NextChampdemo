@@ -9,7 +9,8 @@ import 'leaderboard_page.dart'; // Make sure this file exists and provides UserS
 import 'widgets/animated_badge.dart';
 import 'widgets/progress_badge.dart';
 import 'auth_screen.dart';
-import 'video_playback_screen.dart';
+// import 'login_screen.dart'; // Add this import if LoginScreen is defined here
+import 'video_playback_screen.dart' as playback;
 import 'performance_chart.dart'; // Ensure this exports PerformanceChart widget
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,10 +19,22 @@ import 'gamification_widgets.dart'; // Contains BadgeWidget and ProgressBarWidge
 import 'video_recorder_widget.dart';
 import 'gamification_screen.dart';
 import 'video_upload_widget.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'profile_screen.dart';
+import 'performances_list_screen.dart';
+import "officials_dashboard.dart";
+import 'user_dashboard.dart'; // Ensure this file exists and exports UserDashboard
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final cameras = await availableCameras();
+  await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(NextChampApp(cameras: cameras));
 }
 
@@ -55,8 +68,29 @@ class NextChampApp extends StatelessWidget {
       ],
       supportedLocales: const [
         Locale('en'), // English
-        Locale('es'), // Spanish
+        //Locale('es'), // Spanish
       ],
+      routes: {
+     '/officialsDashboard': (context) => OfficialsDashboard(),
+  // '/userDashboard': (context) => UserDashboard(),
+  '/login': (context) => LoginPage(onRegisterTap: () {
+    // navigate to register page or show register page
+     Navigator.pushNamed(context, '/register');
+  },
+  onLoginSuccess: () {
+    Navigator.pushReplacementNamed(context, '/home');
+    // navigate to home/dashboard page on successful login
+  },),
+  '/home': (context) => HomeScreen(
+    cameras: cameras,
+    authToken: '', // Provide actual token if available
+    onLogout: () async {
+      await FirebaseAuth.instance.signOut();
+    },
+  ),
+  // ... other routes ...
+},
+
       home: AuthWrapper(cameras: cameras),
     );
   }
@@ -69,23 +103,73 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
+// class _AuthWrapperState extends State<AuthWrapper> {
+//   bool isAuthenticated = false;
+//   void onAuthSuccess() {
+//     setState(() => isAuthenticated = true);
+//   }
+//   @override
+//   Widget build(BuildContext context) {
+//     return isAuthenticated
+//         ? HomeScreen(cameras: widget.cameras, authToken: '',onLogout: signOut) // pass your auth token here
+//         : AuthScreen(onAuthSuccess: onAuthSuccess);
+//   }
+//   Future<void> signOut() async {
+//   await FirebaseAuth.instance.signOut();
+//   setState(() {
+//     isAuthenticated = false;
+//   });
+// }
+// }
 class _AuthWrapperState extends State<AuthWrapper> {
   bool isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+    if (user == null) {
+      print("User signed out");
+      setState(() => isAuthenticated = false);
+    } else {
+      print("User signed in: ${user.email}");
+      final idTokenResult = await user.getIdTokenResult();
+      final isAdmin = idTokenResult.claims?['admin'] == true;
+
+      setState(() => isAuthenticated = true);
+
+      if (isAdmin) {
+        Navigator.pushReplacementNamed(context, '/officialsDashboard');
+      } else {
+        Navigator.pushReplacementNamed(context, '/userDashboard');
+      }
+    }
+  });
+}
+
+  Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    setState(() => isAuthenticated = false);
+  }
+  
   void onAuthSuccess() {
     setState(() => isAuthenticated = true);
   }
+
   @override
   Widget build(BuildContext context) {
     return isAuthenticated
-        ? HomeScreen(cameras: widget.cameras, authToken: 'your_auth_token_here') // pass your auth token here
+        ? HomeScreen(cameras: widget.cameras, authToken: '', onLogout: signOut)
         : AuthScreen(onAuthSuccess: onAuthSuccess);
   }
 }
 
+
 class HomeScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
   final String authToken; // Added auth token to HomeScreen
-  const HomeScreen({Key? key, required this.cameras, required this.authToken}) : super(key: key);
+  final Future<void> Function() onLogout;
+  const HomeScreen({Key? key, required this.cameras, required this.authToken, required this.onLogout}) : super(key: key);
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -157,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => VideoPlaybackScreen(videoPath: videoPath!),
+            builder: (_) => playback.VideoPlaybackScreen(videoUrl: videoPath!),
           ),
         );
       } else {
@@ -232,10 +316,75 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => GamificationScreen()));
+                      MaterialPageRoute(builder: (_) => GamificationScreen(userId: FirebaseAuth.instance.currentUser!.uid)));
                 },
                 child: const Text('View Achievements'),
               ),
+              ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: FirebaseAuth.instance.currentUser!.uid)),
+    );
+  },
+  child: const Text('View Profile'),
+),
+ElevatedButton(
+  onPressed: () {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PerformanceListScreen(userId: user.uid),
+        ),
+      );
+    } else {
+      // Show some error or prompt login
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in first')),
+      );
+    }
+    Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => PerformanceView()),
+);
+
+  },
+  child: const Text('View Performances'),
+),
+
+// ElevatedButton(
+//   onPressed: () {
+//     final user = FirebaseAuth.instance.currentUser;
+//     if (user != null) {
+//       String yourFirebaseVideoUrl = 'https://...'; // Replace with actual URL
+    
+//       Navigator.push(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => VideoPlaybackScreen(videoUrl: yourFirebaseVideoUrl),
+//         ),
+//       );
+//     } else {
+//       // Handle user not logged in scenario
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('Please log in to view video')),
+//       );
+//     }
+//   },
+//   child: const Text('Play Video'),
+// ),
+
+
+              ElevatedButton(
+      onPressed: () async {
+        await widget.onLogout();
+      },
+      child: const Text('Logout'),
+
+    ),
+  
               const SizedBox(height: 30),
             ],
           ),
@@ -260,7 +409,7 @@ class ReviewVideoScreen extends StatelessWidget {
         child: Column(
           children: [
             // Your existing video player widget, e.g.:
-            VideoPlaybackScreen(videoPath: videoPath),
+            VideoPlaybackScreen(videoUrl: videoPath),
 
             const SizedBox(height: 20),
 

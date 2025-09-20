@@ -7,5 +7,24 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "nextchamp-3d291",
+          "appId": "1:518903596271:android:582e93d5340aa533fd471a",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "nextchamp-3d291",
+          "configurations": {
+            "android": "1:518903596271:android:582e93d5340aa533fd471a"
+          }
+        }
+      }
+    }
   }
 }

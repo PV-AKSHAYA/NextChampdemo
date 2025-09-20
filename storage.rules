@@ -1,7 +1,20 @@
 service firebase.storage {
   match /b/{bucket}/o {
+    
+    // Restrict athletes to read/write only their own files in performances
+    match /performances/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Restrict officials to read-only access to officials folder
+    match /officials/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;  // Block write for officials folder unless explicitly needed
+    }
+    
+    // Deny all other access by default
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

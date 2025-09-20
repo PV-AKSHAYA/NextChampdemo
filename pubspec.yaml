@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ">=2.12.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -38,14 +38,26 @@ dependencies:
   # path_provider: ^2.0.15  # To access device file storage for saving videos
   path: ^1.8.3           # To manipulate file paths
   video_player: ^2.5.0
-  permission_handler: ^11.1.0
+  permission_handler: ^12.0.1
   path_provider: ^2.1.5
-  http: ^0.13.5
+  http: ^1.5.0
   fl_chart: ^1.0.3
-  flutter_bloc: ^8.1.1
+  flutter_bloc: ^9.1.1
   equatable: ^2.0.3
-  connectivity_plus: ^4.0.1 
+  connectivity_plus: ^7.0.0 
   # lottie: ^2.2.0
+  cloud_firestore: ^6.0.1
+  firebase_auth: ^6.0.2
+  firebase_core: ^4.1.0
+  firebase_storage: ^13.0.1
+  # firebase_auth: ^4.2.5 
+  firebase_messaging: ^16.0.1
+  firebase_analytics: ^12.0.1
+  #   firebase_core: ^2.0.0
+  # firebase_auth: ^4.0.0
+  # cloud_firestore: ^4.0.0
+  # firebase_storage: ^11.0.0
+  dio: ^5.2.1
 
   flutter_localizations:
     sdk: flutter
@@ -60,7 +72,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
