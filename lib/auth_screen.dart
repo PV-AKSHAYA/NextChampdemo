@@ -86,7 +86,7 @@ Future<void> signOut() async {
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthSuccess;
 
-  AuthScreen({required this.onAuthSuccess, Key? key}) : super(key: key);
+  const AuthScreen({required this.onAuthSuccess, Key? key}) : super(key: key);
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -235,8 +235,8 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    child: const Text('Don’t have an account? Register'),
                     onPressed: onRegisterTap,
+                    child: const Text('Don’t have an account? Register'),
                   ),
                 ],
               ),
@@ -390,8 +390,8 @@ class RegisterPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    child: const Text('Already have an account? Login'),
                     onPressed: onLoginTap,
+                    child: const Text('Already have an account? Login'),
                   ),
                 ],
               ),

@@ -13,9 +13,7 @@ import 'auth_screen.dart';
 import 'video_playback_screen.dart' as playback;
 import 'performance_chart.dart'; // Ensure this exports PerformanceChart widget
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'gamification_bloc.dart';
-import 'gamification_widgets.dart'; // Contains BadgeWidget and ProgressBarWidget
+// Contains BadgeWidget and ProgressBarWidget
 import 'video_recorder_widget.dart';
 import 'gamification_screen.dart';
 import 'video_upload_widget.dart';
@@ -25,7 +23,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'profile_screen.dart';
 import 'performances_list_screen.dart';
 import "officials_dashboard.dart";
-import 'user_dashboard.dart'; // Ensure this file exists and exports UserDashboard
+// Ensure this file exists and exports UserDashboard
 
 
 

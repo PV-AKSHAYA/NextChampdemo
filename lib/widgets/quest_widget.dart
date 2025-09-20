@@ -23,8 +23,8 @@ class QuestWidget extends StatelessWidget {
           child: isCompleted
               ? const Icon(Icons.check_circle, color: Colors.green, key: ValueKey('completed'))
               : isInProgress
-                  ? ElevatedButton(onPressed: onComplete, child: const Text('Complete'), key: ValueKey('completeBtn'))
-                  : ElevatedButton(onPressed: onStart, child: const Text('Start'), key: ValueKey('startBtn')),
+                  ? ElevatedButton(onPressed: onComplete, key: ValueKey('completeBtn'), child: const Text('Complete'))
+                  : ElevatedButton(onPressed: onStart, key: ValueKey('startBtn'), child: const Text('Start')),
         ),
       ),
     );

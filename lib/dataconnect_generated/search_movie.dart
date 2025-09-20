@@ -1,8 +1,8 @@
 part of 'example.dart';
 
 class SearchMovieVariablesBuilder {
-  Optional<String> _titleInput = Optional.optional(nativeFromJson, nativeToJson);
-  Optional<String> _genre = Optional.optional(nativeFromJson, nativeToJson);
+  final Optional<String> _titleInput = Optional.optional(nativeFromJson, nativeToJson);
+  final Optional<String> _genre = Optional.optional(nativeFromJson, nativeToJson);
 
   final FirebaseDataConnect _dataConnect;
   SearchMovieVariablesBuilder titleInput(String? t) {

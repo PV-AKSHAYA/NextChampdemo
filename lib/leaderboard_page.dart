@@ -24,9 +24,9 @@ class LeaderboardPage extends StatelessWidget {
             color: isCurrentUser ? Colors.deepPurple.shade100 : Colors.white,
             child: ListTile(
               leading: CircleAvatar(
-                child: Text('${user.rank}'),
                 backgroundColor: isCurrentUser ? Colors.deepPurple : Colors.grey.shade300,
                 foregroundColor: isCurrentUser ? Colors.white : Colors.black87,
+                child: Text('${user.rank}'),
               ),
               title: Text(user.username),
               trailing: Text('${user.score} pts'),

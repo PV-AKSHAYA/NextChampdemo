@@ -308,7 +308,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'performance_service.dart';
 
 enum VideoStatus { idle, recording, analyzing, pendingSync, uploaded }
